@@ -1,6 +1,10 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Jest Diff Coverage'
+description:
+  'The Jest Diff Coverage Action is a GitHub Action that helps you manage code
+  coverage differentials in your Jest test suites. This action provides insights
+  into the coverage changes between different commits or branches, allowing you
+  to track and manage test coverage improvements or regressions.'
+author: 'Jean-Pierre Carvalho'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
