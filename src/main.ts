@@ -1,5 +1,8 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import * as github from '@actions/github'
+import { execSync } from 'child_process'
+import fs from 'fs'
+import { CoverageChecker } from './CoverageChecker'
 
 /**
  * The main function for the action.
@@ -7,18 +10,39 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    core.info(JSON.stringify(github.context))
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    // Specify the command to run
+    const runCommand: string = core.getInput('runCommand')
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    // Extract base and head branch names from the pull request payload
+    const baseBranchName: string = github.context.payload.pull_request?.base.ref
+    const headBranchName: string = github.context.payload.pull_request?.head.ref
 
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    execSync(runCommand)
+
+    const codeCoverageBaseBranch = JSON.parse(
+      fs.readFileSync('coverage-summary.json', 'utf-8')
+    )
+
+    execSync('/usr/bin/git fetch')
+    execSync('/usr/bin/git stash')
+    execSync(`/usr/bin/git checkout --progress --force ${baseBranchName}`)
+
+    execSync(runCommand)
+
+    const codeCoverageHeadBranch = JSON.parse(
+      fs.readFileSync('coverage-summary.json', 'utf-8')
+    )
+
+    const coverageChecker: any = new CoverageChecker(
+      codeCoverageBaseBranch,
+      codeCoverageHeadBranch
+    )
+
+    const coverageDetails = coverageChecker.getCoverageDetails()
+
+    core.info(coverageDetails)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
