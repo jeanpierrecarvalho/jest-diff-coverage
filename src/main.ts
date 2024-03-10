@@ -10,6 +10,7 @@ import { CoverageChecker } from './CoverageChecker'
  */
 export async function run(): Promise<void> {
   try {
+    core.debug(JSON.stringify(github.context))
     core.info(JSON.stringify(github.context))
 
     // Specify the command to run
